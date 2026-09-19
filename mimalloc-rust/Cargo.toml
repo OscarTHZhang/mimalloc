@@ -1,0 +1,10 @@
+[package]
+name = "mimalloc-rust"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.98.0"
+license = "MIT"
+repository = "https://github.com/OscarTHZhang/mimalloc"
+
+[target.'cfg(target_os = "linux")'.dev-dependencies]
+rustix = { version = "1.1.4", default-features = false, features = ["mm"] }
