@@ -1,0 +1,68 @@
+name: Rust rewrite
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main3-rust-rewrite
+      - "rust-rewrite-*"
+    paths:
+      - "mimalloc-rust/**"
+      - ".github/workflows/rust.yaml"
+  pull_request:
+    branches:
+      - main3-rust-rewrite
+    paths:
+      - "mimalloc-rust/**"
+      - ".github/workflows/rust.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+defaults:
+  run:
+    shell: bash
+    working-directory: mimalloc-rust
+
+jobs:
+  stable:
+    name: Format, Clippy, and test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install stable Rust
+        run: rustup toolchain install 1.98.0 --profile minimal --component rustfmt --component clippy
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cargo test --all-targets
+
+  address-sanitizer:
+    name: AddressSanitizer
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install nightly Rust with standard library sources
+        run: rustup toolchain install nightly-2026-09-18 --profile minimal --component rust-src
+
+      - name: Run AddressSanitizer tests
+        run: bash scripts/test-asan.sh
