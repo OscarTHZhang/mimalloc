@@ -3,3 +3,4 @@
 //! Allocator behavior is added one small, reviewed concept at a time.
 
 mod page;
+mod size_class;
